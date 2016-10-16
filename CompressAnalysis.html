@@ -1,0 +1,413 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Compression Testing Analysis</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-15"><meta name="DC.source" content="CompressAnalysis.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Compression Testing Analysis</h1><!--introduction--><p>compression of a cylindrical gel with height = L [mm] and diameter = d [mm] by Roche C. de Guzman, Ph.D. Hofstra University</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Clear Previous</a></li><li><a href="#2">Given</a></li><li><a href="#3">Computations</a></li><li><a href="#4">Display Results</a></li></ul></div><h2>Clear Previous<a name="1"></a></h2><pre class="codeinput">clear; clc; close(<span class="string">'all'</span>);
+</pre><h2>Given<a name="2"></a></h2><pre class="codeinput">Data = xlsread(<span class="string">'DataDispLoad'</span>); <span class="comment">% read Excel file: DataDispLoad.xlsx</span>
+dL = Data(:,1)'; <span class="comment">% relative displacement [mm] data</span>
+F = Data(:,2)'; <span class="comment">% load = force [N] data</span>
+ADF = 5; <span class="comment">% adjustment factor for zeroing</span>
+L = 1.5875; <span class="comment">% height of the cylinder [mm]</span>
+d = 4.7625; <span class="comment">% diameter of the cylinder [mm]</span>
+</pre><h2>Computations<a name="3"></a></h2><pre class="codeinput"><span class="comment">% get the zero point of force</span>
+NF = numel(F); <span class="comment">% number of elements of F</span>
+PosF_L = F &gt; 0; <span class="comment">% logical positive</span>
+IndV = find(PosF_L); <span class="comment">% index of positives</span>
+NIndV = numel(IndV); <span class="comment">% number of elements of IndV</span>
+Nneg = NF-NIndV; <span class="comment">% number of elements of negatives</span>
+Diff = zeros(1,NIndV-ADF);
+<span class="keyword">for</span> c1 = 1:NIndV-ADF
+    Diff(c1) = IndV(c1+ADF)-IndV(c1); <span class="comment">% difference between points separated by ADF</span>
+<span class="keyword">end</span>
+Diff2 = Diff(2:end)-Diff(1:end-1); <span class="comment">% difference between 2 adjacent points</span>
+<span class="keyword">for</span> c2 = 1:c1-1
+    <span class="keyword">if</span> Diff2(c2) ~= 0
+        Diff2(c2) = c2; <span class="comment">% replaces the elements with increasing counter</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+IndZero = max(Diff2)+Nneg+1; <span class="comment">% index of zero F</span>
+
+<span class="comment">% zeroed dl and F</span>
+dL = dL(IndZero:end)-dL(IndZero); <span class="comment">% relative displacement [mm]</span>
+F = F(IndZero:end)-F(IndZero); <span class="comment">% force [N]</span>
+
+<span class="comment">% intensive properties</span>
+r = d/2; <span class="comment">% radius [mm]</span>
+A = pi*r^2; <span class="comment">% cross-sectional area [mm^2]</span>
+A = A/1e6; <span class="comment">% cross-sectional area [m^2]</span>
+strain = dL/L; <span class="comment">% strain [mm/mm]</span>
+stress = F/A; <span class="comment">% stress [N/m^2 = Pa]</span>
+
+<span class="comment">% adjust units</span>
+strain = strain*100; <span class="comment">% strain [%]</span>
+stress = stress/1e6; <span class="comment">% stress [MPa]</span>
+
+<span class="comment">% locate the ultimate stress</span>
+dsigma = diff(stress); <span class="comment">% derivative of stress</span>
+Ndsig = numel(dsigma); <span class="comment">% number of elements of dsigma</span>
+<span class="keyword">for</span> c3 = 1:Ndsig-ADF
+    <span class="keyword">if</span> all(dsigma(c3:c3+ADF)&lt;0)
+        UsigInd = c3; <span class="comment">% index of the ultimate stress</span>
+        <span class="keyword">break</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% trim data</span>
+cutoff = round(UsigInd*1.15); <span class="comment">% maximum index</span>
+strain = strain(1:cutoff); <span class="comment">% strain [%]</span>
+stress = stress(1:cutoff); <span class="comment">% stress [MPa]</span>
+
+<span class="comment">% readjust the zero</span>
+Ustr = max(stress); <span class="comment">% maximum stress [MPa]</span>
+limStr = Ustr*0.01; <span class="comment">% 1% of maximum stress [MPa]</span>
+Lsig = stress &gt;= limStr; <span class="comment">% logical true</span>
+LsigInd = find(Lsig); <span class="comment">% index of true</span>
+zInd = LsigInd(1); <span class="comment">% new index</span>
+strain = strain(zInd:end)-strain(zInd); <span class="comment">% strain [%]</span>
+stress = stress(zInd:end)-stress(zInd); <span class="comment">% stress [MPa]</span>
+
+<span class="comment">% true values</span>
+strainT = log(1+strain/100)*100; <span class="comment">% true strain [%]</span>
+stressT = stress.*(1+strain/100); <span class="comment">% true stress [MPa]</span>
+[UCS,UCSi] = max(stressT); <span class="comment">% ultimate compressive strength [MPa]</span>
+UCstrain = strainT(UCSi); <span class="comment">% ultimate compressive strain [%]</span>
+
+<span class="comment">% linear regression to determine the compressive modulus</span>
+ND = numel(stressT); <span class="comment">% number of elements</span>
+<span class="comment">% initial values</span>
+RSQ = zeros(1,ND-2); x = NaN(1,ND); y = x; yf = y; m = RSQ; b = m; dy = b;
+<span class="keyword">for</span> c4 = 1:ND-2
+    x = strainT(1:c4+2); <span class="comment">% x observed [%]</span>
+    y = stressT(1:c4+2); <span class="comment">% y observed [MPa]</span>
+    m(c4) = (((c4+2)*sum(x.*y))-(sum(x)*sum(y)))/(((c4+2)*sum(x.^2))-(sum(x)^2)) ; <span class="comment">% slope of line fit [MPa/% = 100*MPa]</span>
+    b(c4) = ((sum(y))-(m(c4)*(sum(x))))/(c4+2); <span class="comment">% y-intercept of line fit [MPa]</span>
+    yf = m(c4)*x + b(c4); <span class="comment">% y fit [MPa]</span>
+    SSE = sum((y-yf).^2); <span class="comment">% sum of squares error</span>
+    SST = sum((y-mean(y)).^2); <span class="comment">% sum of squares total</span>
+    RSQ(c4) = 1 - (SSE/SST); <span class="comment">% coefficient of determination vector</span>
+    <span class="comment">%xi(c4) = -b/m(c4);</span>
+    dy(c4) = abs(y(c4+2) - (m(c4)*x(c4+2)+b(c4)))/UCS; <span class="comment">% change in y over UCS</span>
+<span class="keyword">end</span>
+[~,ECi] = max(dy &gt;= 0.01); <span class="comment">% index of the compressive modulus, 10% cutoff</span>
+rsq = RSQ(ECi); <span class="comment">% r^2 = coefficient of determination</span>
+EC = m(ECi)*100; <span class="comment">% compressive modulus [MPa]</span>
+
+<span class="comment">% yield values</span>
+Ystrain = strainT(ECi+2); <span class="comment">% yield strain [%]</span>
+Ystress = stressT(ECi+2); <span class="comment">% yield stress [%]</span>
+</pre><h2>Display Results<a name="4"></a></h2><pre class="codeinput"><span class="comment">% animation to fit the line</span>
+<span class="keyword">for</span> c5 = 1:ND-2
+    plot(strain(1:ND-2),stress(1:ND-2),<span class="string">'-r'</span>); <span class="comment">% engineering</span>
+    hold(<span class="string">'on'</span>);
+    plot(strainT(1:ND-2),stressT(1:ND-2),<span class="string">'-b'</span>,<span class="string">'linewidth'</span>,2); <span class="comment">% true</span>
+    legend(<span class="string">'engineering'</span>,<span class="string">'true'</span>,<span class="string">'location'</span>,<span class="string">'northwest'</span>);
+    title(<span class="string">'Gel Compression Until Fracture'</span>);
+    xlabel(<span class="string">'Compressive Strain [%]'</span>);
+    ylabel(<span class="string">'Compressive Stress [MPa]'</span>);
+    plot([strain(1) strain(end)],[m(c5)*strain(1)+b(c5) m(c5)*strain(end)+b(c5)],<span class="string">'color'</span>,[0 1 0.25]);
+    axis([0 strain(ND-2) 0 UCS*1.15]);
+    drawnow;
+    hold(<span class="string">'off'</span>);
+<span class="keyword">end</span>
+<span class="keyword">for</span> c6 = ND-2:-1:1
+    plot(strain(1:ND-2),stress(1:ND-2),<span class="string">'-r'</span>); <span class="comment">% engineering</span>
+    hold(<span class="string">'on'</span>);
+    plot(strainT(1:ND-2),stressT(1:ND-2),<span class="string">'-b'</span>,<span class="string">'linewidth'</span>,2); <span class="comment">% true</span>
+    legend(<span class="string">'engineering'</span>,<span class="string">'true'</span>,<span class="string">'location'</span>,<span class="string">'northwest'</span>);
+    title(<span class="string">'Gel Compression Until Fracture'</span>);
+    xlabel(<span class="string">'Compressive Strain [%]'</span>);
+    ylabel(<span class="string">'Compressive Stress [MPa]'</span>);
+    plot([strain(1) strain(end)],[m(c6)*strain(1)+b(c6) m(c6)*strain(end)+b(c6)],<span class="string">'color'</span>,[0 1 0.25]);
+    axis([0 strain(ND-2) 0 UCS*1.15]);
+    drawnow;
+    hold(<span class="string">'off'</span>);
+    <span class="keyword">if</span> m(c6)*100 == EC
+        plot(strain(1:ND-2),stress(1:ND-2),<span class="string">'-r'</span>); <span class="comment">% engineering</span>
+        hold(<span class="string">'on'</span>);
+        plot(strainT(1:ND-2),stressT(1:ND-2),<span class="string">'-b'</span>,<span class="string">'linewidth'</span>,2); <span class="comment">% true</span>
+        legend(<span class="string">'engineering'</span>,<span class="string">'true'</span>,<span class="string">'location'</span>,<span class="string">'northwest'</span>);
+        title(<span class="string">'Gel Compression Until Fracture'</span>);
+        xlabel(<span class="string">'Compressive Strain [%]'</span>);
+        ylabel(<span class="string">'Compressive Stress [MPa]'</span>);
+        <span class="comment">% yield</span>
+        plot([strain(1) strain(end)],[m(c6)*strain(1)+b(c6) m(c6)*strain(end)+b(c6)],<span class="string">'-g'</span>,<span class="string">'color'</span>,[0 1 0.25]);
+        plot(Ystrain,Ystress,<span class="string">'ob'</span>,<span class="string">'markerfacecolor'</span>,[0 1 0],<span class="string">'markersize'</span>,5);
+        plot([Ystrain Ystrain],[0 Ystress],<span class="string">'--g'</span>);
+        plot([0 Ystrain],[Ystress Ystress],<span class="string">'--g'</span>);
+        text(Ystrain,Ystress+0.08*UCS,<span class="string">'yield'</span>,<span class="string">'color'</span>,[0 1 0]);
+        <span class="comment">% ultimate</span>
+        plot(UCstrain,UCS,<span class="string">'pb'</span>,<span class="string">'markerfacecolor'</span>,[0 0 0],<span class="string">'markersize'</span>,8);
+        plot([UCstrain UCstrain],[0 UCS],<span class="string">'--k'</span>);
+        plot([0 UCstrain],[UCS UCS],<span class="string">'--k'</span>);
+        text(UCstrain,UCS+0.08*UCS,<span class="string">'ultimate'</span>);
+        axis([0 strain(ND-2) 0 UCS*1.15]);
+        hold(<span class="string">'off'</span>);
+        <span class="keyword">break</span>;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% command window display</span>
+disp(<span class="string">'========================================================================================'</span>);
+disp([<span class="string">'   The gel was found to have a compressive modulus of '</span> num2str(EC) <span class="string">' MPa or '</span> num2str(EC*1000) <span class="string">' kPa.'</span>]);
+disp([<span class="string">'   Its yield strain is '</span> num2str(Ystrain) <span class="string">'%, while'</span>]);
+disp([<span class="string">'   its yield strength is '</span> num2str(Ystress) <span class="string">' MPa or '</span> num2str(Ystress*1000) <span class="string">' kPa.'</span>]);
+disp([<span class="string">'   Also, its ultimate compressive strain is '</span> num2str(UCstrain) <span class="string">'%, while'</span>]);
+disp([<span class="string">'   its ultimate compressive strength is '</span> num2str(UCS) <span class="string">' MPa or '</span> num2str(UCS*1000) <span class="string">' kPa.'</span>]);
+disp(<span class="string">'========================================================================================'</span>);
+
+<span class="comment">% write to Excel</span>
+Results = {<span class="string">'Compressive Modulus of Elasticity [MPa]'</span> <span class="string">'Yield Strain [%]'</span> <span class="string">'Yield Stress [MPa]'</span> <span class="string">'Ultimate Compressive Strain [%]'</span> <span class="string">'Ultimate Compressive Stress [MPa]'</span>; EC Ystrain Ystress UCstrain UCS}; <span class="comment">% summary of results</span>
+xlswrite(<span class="string">'ResStressStrain.xlsx'</span>,Results); <span class="comment">% write to Excel file: ResStressStrain.xlsx</span>
+
+<span class="comment">% Thank You!!!</span>
+</pre><pre class="codeoutput">========================================================================================
+   The gel was found to have a compressive modulus of 0.26708 MPa or 267.0761 kPa.
+   Its yield strain is 9.0436%, while
+   its yield strength is 0.024838 MPa or 24.8378 kPa.
+   Also, its ultimate compressive strain is 27.871%, while
+   its ultimate compressive strength is 0.32528 MPa or 325.2758 kPa.
+========================================================================================
+</pre><img vspace="5" hspace="5" src="CompressAnalysis_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Compression Testing Analysis
+% compression of a cylindrical gel with height = L [mm] and diameter = d [mm]
+% by Roche C. de Guzman, Ph.D.
+% Hofstra University
+
+%% Clear Previous
+
+clear; clc; close('all');
+
+%% Given
+
+Data = xlsread('DataDispLoad'); % read Excel file: DataDispLoad.xlsx
+dL = Data(:,1)'; % relative displacement [mm] data
+F = Data(:,2)'; % load = force [N] data
+ADF = 5; % adjustment factor for zeroing
+L = 1.5875; % height of the cylinder [mm]
+d = 4.7625; % diameter of the cylinder [mm]
+
+%% Computations
+
+% get the zero point of force
+NF = numel(F); % number of elements of F
+PosF_L = F > 0; % logical positive
+IndV = find(PosF_L); % index of positives
+NIndV = numel(IndV); % number of elements of IndV
+Nneg = NF-NIndV; % number of elements of negatives
+Diff = zeros(1,NIndV-ADF);
+for c1 = 1:NIndV-ADF
+    Diff(c1) = IndV(c1+ADF)-IndV(c1); % difference between points separated by ADF
+end
+Diff2 = Diff(2:end)-Diff(1:end-1); % difference between 2 adjacent points
+for c2 = 1:c1-1
+    if Diff2(c2) ~= 0
+        Diff2(c2) = c2; % replaces the elements with increasing counter
+    end
+end
+IndZero = max(Diff2)+Nneg+1; % index of zero F
+
+% zeroed dl and F
+dL = dL(IndZero:end)-dL(IndZero); % relative displacement [mm]
+F = F(IndZero:end)-F(IndZero); % force [N]
+
+% intensive properties
+r = d/2; % radius [mm]
+A = pi*r^2; % cross-sectional area [mm^2]
+A = A/1e6; % cross-sectional area [m^2]
+strain = dL/L; % strain [mm/mm]
+stress = F/A; % stress [N/m^2 = Pa]
+
+% adjust units
+strain = strain*100; % strain [%]
+stress = stress/1e6; % stress [MPa]
+
+% locate the ultimate stress
+dsigma = diff(stress); % derivative of stress
+Ndsig = numel(dsigma); % number of elements of dsigma
+for c3 = 1:Ndsig-ADF
+    if all(dsigma(c3:c3+ADF)<0)
+        UsigInd = c3; % index of the ultimate stress
+        break
+    end
+end
+
+% trim data
+cutoff = round(UsigInd*1.15); % maximum index
+strain = strain(1:cutoff); % strain [%]
+stress = stress(1:cutoff); % stress [MPa]
+
+% readjust the zero
+Ustr = max(stress); % maximum stress [MPa]
+limStr = Ustr*0.01; % 1% of maximum stress [MPa]
+Lsig = stress >= limStr; % logical true
+LsigInd = find(Lsig); % index of true
+zInd = LsigInd(1); % new index
+strain = strain(zInd:end)-strain(zInd); % strain [%]
+stress = stress(zInd:end)-stress(zInd); % stress [MPa]
+
+% true values
+strainT = log(1+strain/100)*100; % true strain [%]
+stressT = stress.*(1+strain/100); % true stress [MPa]
+[UCS,UCSi] = max(stressT); % ultimate compressive strength [MPa]
+UCstrain = strainT(UCSi); % ultimate compressive strain [%]
+
+% linear regression to determine the compressive modulus
+ND = numel(stressT); % number of elements
+% initial values
+RSQ = zeros(1,ND-2); x = NaN(1,ND); y = x; yf = y; m = RSQ; b = m; dy = b;
+for c4 = 1:ND-2
+    x = strainT(1:c4+2); % x observed [%]
+    y = stressT(1:c4+2); % y observed [MPa]
+    m(c4) = (((c4+2)*sum(x.*y))-(sum(x)*sum(y)))/(((c4+2)*sum(x.^2))-(sum(x)^2)) ; % slope of line fit [MPa/% = 100*MPa]
+    b(c4) = ((sum(y))-(m(c4)*(sum(x))))/(c4+2); % y-intercept of line fit [MPa]
+    yf = m(c4)*x + b(c4); % y fit [MPa]
+    SSE = sum((y-yf).^2); % sum of squares error
+    SST = sum((y-mean(y)).^2); % sum of squares total
+    RSQ(c4) = 1 - (SSE/SST); % coefficient of determination vector
+    %xi(c4) = -b/m(c4);
+    dy(c4) = abs(y(c4+2) - (m(c4)*x(c4+2)+b(c4)))/UCS; % change in y over UCS 
+end
+[~,ECi] = max(dy >= 0.01); % index of the compressive modulus, 10% cutoff
+rsq = RSQ(ECi); % r^2 = coefficient of determination
+EC = m(ECi)*100; % compressive modulus [MPa]
+
+% yield values
+Ystrain = strainT(ECi+2); % yield strain [%]
+Ystress = stressT(ECi+2); % yield stress [%]
+
+%% Display Results
+
+% animation to fit the line
+for c5 = 1:ND-2
+    plot(strain(1:ND-2),stress(1:ND-2),'-r'); % engineering
+    hold('on');
+    plot(strainT(1:ND-2),stressT(1:ND-2),'-b','linewidth',2); % true
+    legend('engineering','true','location','northwest');
+    title('Gel Compression Until Fracture');
+    xlabel('Compressive Strain [%]');
+    ylabel('Compressive Stress [MPa]');    
+    plot([strain(1) strain(end)],[m(c5)*strain(1)+b(c5) m(c5)*strain(end)+b(c5)],'color',[0 1 0.25]);
+    axis([0 strain(ND-2) 0 UCS*1.15]);
+    drawnow;
+    hold('off');
+end
+for c6 = ND-2:-1:1
+    plot(strain(1:ND-2),stress(1:ND-2),'-r'); % engineering
+    hold('on');
+    plot(strainT(1:ND-2),stressT(1:ND-2),'-b','linewidth',2); % true
+    legend('engineering','true','location','northwest');
+    title('Gel Compression Until Fracture');
+    xlabel('Compressive Strain [%]');
+    ylabel('Compressive Stress [MPa]');    
+    plot([strain(1) strain(end)],[m(c6)*strain(1)+b(c6) m(c6)*strain(end)+b(c6)],'color',[0 1 0.25]);
+    axis([0 strain(ND-2) 0 UCS*1.15]);
+    drawnow;
+    hold('off');
+    if m(c6)*100 == EC
+        plot(strain(1:ND-2),stress(1:ND-2),'-r'); % engineering
+        hold('on');
+        plot(strainT(1:ND-2),stressT(1:ND-2),'-b','linewidth',2); % true
+        legend('engineering','true','location','northwest');
+        title('Gel Compression Until Fracture');
+        xlabel('Compressive Strain [%]');
+        ylabel('Compressive Stress [MPa]'); 
+        % yield
+        plot([strain(1) strain(end)],[m(c6)*strain(1)+b(c6) m(c6)*strain(end)+b(c6)],'-g','color',[0 1 0.25]);
+        plot(Ystrain,Ystress,'ob','markerfacecolor',[0 1 0],'markersize',5);
+        plot([Ystrain Ystrain],[0 Ystress],'REPLACE_WITH_DASH_DASHg');
+        plot([0 Ystrain],[Ystress Ystress],'REPLACE_WITH_DASH_DASHg');
+        text(Ystrain,Ystress+0.08*UCS,'yield','color',[0 1 0]);
+        % ultimate
+        plot(UCstrain,UCS,'pb','markerfacecolor',[0 0 0],'markersize',8);
+        plot([UCstrain UCstrain],[0 UCS],'REPLACE_WITH_DASH_DASHk');
+        plot([0 UCstrain],[UCS UCS],'REPLACE_WITH_DASH_DASHk');
+        text(UCstrain,UCS+0.08*UCS,'ultimate');
+        axis([0 strain(ND-2) 0 UCS*1.15]);
+        hold('off');
+        break;
+    end
+end
+
+% command window display
+disp('========================================================================================');
+disp(['   The gel was found to have a compressive modulus of ' num2str(EC) ' MPa or ' num2str(EC*1000) ' kPa.']);
+disp(['   Its yield strain is ' num2str(Ystrain) '%, while']);
+disp(['   its yield strength is ' num2str(Ystress) ' MPa or ' num2str(Ystress*1000) ' kPa.']);
+disp(['   Also, its ultimate compressive strain is ' num2str(UCstrain) '%, while']);
+disp(['   its ultimate compressive strength is ' num2str(UCS) ' MPa or ' num2str(UCS*1000) ' kPa.']);
+disp('========================================================================================');
+
+% write to Excel
+Results = {'Compressive Modulus of Elasticity [MPa]' 'Yield Strain [%]' 'Yield Stress [MPa]' 'Ultimate Compressive Strain [%]' 'Ultimate Compressive Stress [MPa]'; EC Ystrain Ystress UCstrain UCS}; % summary of results
+xlswrite('ResStressStrain.xlsx',Results); % write to Excel file: ResStressStrain.xlsx
+
+% Thank You!!!
+
+
+##### SOURCE END #####
+--></body></html>
